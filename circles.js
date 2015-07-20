@@ -1,6 +1,6 @@
 // compiled from Hot Cocoa Lisp
 
-var canvas, ctx, log, rad, even_hyphen_ring_question_, rail_question_, slat_question_, dot_question_, color, params, draw;
+var canvas, ctx, log, rad, even_hyphen_ring_question_, rail_hyphen_edge_question_, rail_question_, slat_question_, dot_question_, color, params, draw;
 
 // (def canvas (first (document.getElementsByTagName "canvas")))
 
@@ -19,9 +19,9 @@ var canvas, ctx, log, rad, even_hyphen_ring_question_, rail_question_, slat_ques
 (canvas["width"] = window["innerWidth"]);
 
 // (def log
-//      (# (x) (/ (Math.log x) (Math.log 1.37))))
+//      (# (x) (/ (Math.log x) (Math.log 1.32))))
 
-(log = (function (x) {  return (Math["log"](x) / Math["log"](1.37)); }));
+(log = (function (x) {  return (Math["log"](x) / Math["log"](1.32)); }));
 
 // (def rad
 //      (# (r i)
@@ -34,6 +34,13 @@ var canvas, ctx, log, rad, even_hyphen_ring_question_, rail_question_, slat_ques
 //         (even? (Math.floor (log (rad r i))))))
 
 (even_hyphen_ring_question_ = (function (r, i) {  return (Math["floor"](log(rad(r, i))) % 2 === 0); }));
+
+// (def rail-edge?
+//      (# (r i)
+//         (let (x (Math.abs (- (Math.abs r) (Math.abs i))))
+//           (and (> x (/ (rad r i) 7.5)) (< x (/ (rad r i) 6.5))))))
+
+(rail_hyphen_edge_question_ = (function (r, i) {  return (function(x) { return (((x > (rad(r, i) / 7.5))) && ((x < (rad(r, i) / 6.5)))); }).call(this, Math["abs"]((Math["abs"](r) - Math["abs"](i)))); }));
 
 // (def rail?
 //      (# (r i)
@@ -61,19 +68,21 @@ var canvas, ctx, log, rad, even_hyphen_ring_question_, rail_question_, slat_ques
 
 // (def color
 //      (# (r i)
-//         (if (even-ring? r i)
+//           (if (even-ring? r i)
+//               (cond
+//                ((rail-edge? r i) "rgb(80,80,70)")
+//                ((rail? r i) "rgb(150,20,180)")
+//                ((slat? r i) "rgb(200,150,100)")
+//                ((dot? r i) "rgb(220,100,120)")
+//                (true "rgb(150,150,150)"))
 //             (cond
-//              ((rail? r i) "rgb(150,20,180)")
-//              ((slat? r i) "rgb(200,150,100)")
-//              ((dot? r i) "rgb(220,100,120)")
-//              (true "rgb(150,150,150)"))
-//             (cond
+//              ((rail-edge? r i) "rgb(60,60,70)")
 //              ((rail? r i) "rgb(20,150,180)")
 //              ((slat? r i) "rgb(100,200,100)")
 //              ((dot? r i) "rgb(190,160,110)")
 //              (true "rgb(255,255,255)")))))
 
-(color = (function (r, i) {  return (even_hyphen_ring_question_(r, i) ? (rail_question_(r, i) ? "rgb(150,20,180)" : slat_question_(r, i) ? "rgb(200,150,100)" : dot_question_(r, i) ? "rgb(220,100,120)" : true ? "rgb(150,150,150)" : undefined) : (rail_question_(r, i) ? "rgb(20,150,180)" : slat_question_(r, i) ? "rgb(100,200,100)" : dot_question_(r, i) ? "rgb(190,160,110)" : true ? "rgb(255,255,255)" : undefined)); }));
+(color = (function (r, i) {  return (even_hyphen_ring_question_(r, i) ? (rail_hyphen_edge_question_(r, i) ? "rgb(80,80,70)" : rail_question_(r, i) ? "rgb(150,20,180)" : slat_question_(r, i) ? "rgb(200,150,100)" : dot_question_(r, i) ? "rgb(220,100,120)" : true ? "rgb(150,150,150)" : undefined) : (rail_hyphen_edge_question_(r, i) ? "rgb(60,60,70)" : rail_question_(r, i) ? "rgb(20,150,180)" : slat_question_(r, i) ? "rgb(100,200,100)" : dot_question_(r, i) ? "rgb(190,160,110)" : true ? "rgb(255,255,255)" : undefined)); }));
 
 // (var params { r 0 i 0 range 4 maxIter 30 })
 
@@ -96,35 +105,3 @@ var canvas, ctx, log, rad, even_hyphen_ring_question_, rail_question_, slat_ques
 // (draw)
 
 draw();
-
-// (document.addEventListener
-//  "keyup" (# (e)
-//             (cond
-//              ((= e.keyCode 81) ; q
-//               (begin
-//                (set* params.range 2/3)
-//                (++ params.maxIter)
-//                (draw)))
-//              ((= e.keyCode 87) ; w
-//               (begin
-//                (set- params.i (/ params.range 3))
-//                (draw)))
-//              ((= e.keyCode 69) ; e
-//               (begin
-//                (set* params.range 3/2)
-//                (-- params.maxIter)
-//                (draw)))
-//              ((= e.keyCode 65) ; a
-//               (begin
-//                (set- params.r (/ params.range 3))
-//                (draw)))
-//              ((= e.keyCode 83) ; s
-//               (begin
-//                (set+ params.i (/ params.range 3))
-//                (draw)))
-//              ((= e.keyCode 68) ; d
-//               (begin
-//                (set+ params.r (/ params.range 3))
-//                (draw))))))
-
-document["addEventListener"]("keyup", (function (e) {  return (((e["keyCode"] === 81)) ? (function() { (params["range"] *= (2/3)); params["maxIter"]++; return draw(); }).call(this) : ((e["keyCode"] === 87)) ? (function() { (params["i"] -= (params["range"] / 3)); return draw(); }).call(this) : ((e["keyCode"] === 69)) ? (function() { (params["range"] *= (3/2)); params["maxIter"]--; return draw(); }).call(this) : ((e["keyCode"] === 65)) ? (function() { (params["r"] -= (params["range"] / 3)); return draw(); }).call(this) : ((e["keyCode"] === 83)) ? (function() { (params["i"] += (params["range"] / 3)); return draw(); }).call(this) : ((e["keyCode"] === 68)) ? (function() { (params["r"] += (params["range"] / 3)); return draw(); }).call(this) : undefined); }));
