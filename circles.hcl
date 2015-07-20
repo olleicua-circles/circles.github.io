@@ -5,7 +5,7 @@
 (set canvas.width window.innerWidth)
 
 (def log
-     (# (x) (/ (Math.log x) (Math.log 1.37))))
+     (# (x) (/ (Math.log x) (Math.log 1.32))))
 
 (def rad
      (# (r i)
@@ -14,6 +14,11 @@
 (def even-ring?
      (# (r i)
         (even? (Math.floor (log (rad r i))))))
+
+(def rail-edge?
+     (# (r i)
+        (let (x (Math.abs (- (Math.abs r) (Math.abs i))))
+          (and (> x (/ (rad r i) 7.5)) (< x (/ (rad r i) 6.5))))))
 
 (def rail?
      (# (r i)
@@ -35,13 +40,15 @@
 
 (def color
      (# (r i)
-        (if (even-ring? r i)
+          (if (even-ring? r i)
+              (cond
+               ((rail-edge? r i) "rgb(80,80,70)")
+               ((rail? r i) "rgb(150,20,180)")
+               ((slat? r i) "rgb(200,150,100)")
+               ((dot? r i) "rgb(220,100,120)")
+               (true "rgb(150,150,150)"))
             (cond
-             ((rail? r i) "rgb(150,20,180)")
-             ((slat? r i) "rgb(200,150,100)")
-             ((dot? r i) "rgb(220,100,120)")
-             (true "rgb(150,150,150)"))
-            (cond
+             ((rail-edge? r i) "rgb(60,60,70)")
              ((rail? r i) "rgb(20,150,180)")
              ((slat? r i) "rgb(100,200,100)")
              ((dot? r i) "rgb(190,160,110)")
@@ -62,34 +69,3 @@
                       (ctx.fillRect r i 1 1)))))
 
 (draw)
-
-(document.addEventListener
- "keyup" (# (e)
-            (cond
-             ((= e.keyCode 81) ; q
-              (begin
-               (set* params.range 2/3)
-               (++ params.maxIter)
-               (draw)))
-             ((= e.keyCode 87) ; w
-              (begin
-               (set- params.i (/ params.range 3))
-               (draw)))
-             ((= e.keyCode 69) ; e
-              (begin
-               (set* params.range 3/2)
-               (-- params.maxIter)
-               (draw)))
-             ((= e.keyCode 65) ; a
-              (begin
-               (set- params.r (/ params.range 3))
-               (draw)))
-             ((= e.keyCode 83) ; s
-              (begin
-               (set+ params.i (/ params.range 3))
-               (draw)))
-             ((= e.keyCode 68) ; d
-              (begin
-               (set+ params.r (/ params.range 3))
-               (draw))))))
-
